@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生質能校園大亨：微電網保衛戰</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ====== 標題畫面 ====== -->
+    <div id="titleScreen">
+      <div class="title-main">🌱 生質能校園大亨</div>
+      <div class="title-sub">Bioenergy Tycoon: Microgrid Defense</div>
+      <div class="title-desc">
+        你是花蓮某高中的永續能源規劃者。<br>
+        在 15 分鐘內，利用校園廢棄物建立生質能系統，<br>
+        將廚餘、枯枝、糞水轉化為電力。<br>
+        控制汙染、維持系統穩定、迎戰颱風停電！<br>
+        你能讓校園成為能源韌性的典範嗎？
+      </div>
+      <div class="title-buttons">
+        <button id="btnTutorial" class="btn-secondary">📖 新手教學</button>
+        <button id="btnStart" class="btn-primary">🎮 開始遊戲</button>
+      </div>
+    </div>
+
+    <!-- ====== 教學引導 ====== -->
+    <div id="tutorialScreen" class="hidden">
+      <div class="tutorial-card">
+        <h2 id="tutorialTitle"></h2>
+        <p id="tutorialText"></p>
+        <div id="tutorialProgress"></div>
+        <div class="tutorial-buttons">
+          <button id="btnTutorialSkip" class="btn-secondary">跳過教學</button>
+          <button id="btnTutorialNext" class="btn-primary">下一步 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== HUD 頂部列 ====== -->
+    <div id="hudBar" class="hidden">
+      <div class="hud-item">
+        <span class="label">⏱ 時間</span>
+        <span id="hudTimer">5:00</span>
+      </div>
+      <div class="hud-item">
+        <span class="label">💰 資金</span>
+        <span id="hudMoney">$50000</span>
+      </div>
+      <div class="hud-item">
+        <span class="label">👷 人力</span>
+        <span id="hudManpower">10/10</span>
+      </div>
+      <div class="hud-item">
+        <span class="label">💢 抗議值</span>
+        <div class="protest-bar-container">
+          <div id="hudProtest" style="width:0%"></div>
+          <span id="hudProtestText">0%</span>
+        </div>
+      </div>
+      <div class="hud-item">
+        <span id="hudPower" class="power-on">⚡ 0 kW</span>
+      </div>
+      <button id="btnSubmitEarly" class="btn-submit-early">✅ 設計完成</button>
+      <button id="btnPause">⏸ 暫停</button>
+    </div>
+
+    <!-- ====== 主遊戲區 ====== -->
+    <div id="mainArea">
+      <!-- 地圖 -->
+      <div id="mapContainer">
+        <div id="canvasWrapper">
+          <canvas id="gameCanvas"></canvas>
+          <canvas id="uiCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- 右側面板 -->
+      <div id="sidePanel" class="hidden">
+        <div class="panel-section">
+          <h3>🔬 C/N 比監控</h3>
+          <div id="cnStatus"><div class="cn-empty">尚無資源輸入</div></div>
+        </div>
+        <div class="panel-section">
+          <h3>🏭 消化槽狀態</h3>
+          <div id="digesterStatus"><div class="cn-empty">尚未建造消化槽</div></div>
+        </div>
+        <div class="panel-section">
+          <h3>⚡ 供電狀態</h3>
+          <div id="powerStatus"><div class="cn-empty">尚未建造發電機</div></div>
+        </div>
+        <div class="panel-section">
+          <h3>💢 外部成本</h3>
+          <div id="externalityStatus"><div class="cn-empty">尚無外部成本</div></div>
+        </div>
+        <div class="panel-section">
+          <h3>📋 操作提示</h3>
+          <div style="font-size:11px;color:var(--text-dim);line-height:1.7">
+            • 點擊<span style="color:#5a9e4f">■ 綠色空地</span>建設設備或道路<br>
+            • 從資源/設備<b>拖曳</b>到下一個設備建立管線<br>
+            • 管線兩端必須<b>鄰接道路</b>！<br>
+            • 建議順序：前處理→混合槽→消化槽→脫硫→發電<br>
+            • 別忘了建洗滌塔控制臭味！<br>
+            • 拉<span style="color:#FFD700">電線</span>到校園建築獲得韌性分數
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 建設選單 (浮動) ====== -->
+    <div id="buildMenu" class="hidden">
+      <h3>🔨 建設設備</h3>
+      <div id="buildList"></div>
+      <button id="btnCloseBuild">✕ 關閉</button>
+    </div>
+
+    <!-- ====== 資訊面板 (浮動) ====== -->
+    <div id="infoPanel" class="hidden">
+      <button id="btnCloseInfo">✕</button>
+      <div id="infoContent"></div>
+    </div>
+
+    <!-- ====== 結算畫面 ====== -->
+    <div id="gameOverScreen" class="hidden">
+      <div class="go-card">
+        <h2 id="goTitle">遊戲結束</h2>
+
+        <div class="go-grade-row">
+          <span id="goGrade" class="grade">B</span>
+        </div>
+
+        <div class="go-total">
+          總分：<span id="goTotal">0</span> / 10800
+        </div>
+
+        <div class="go-scores">
+          <div class="go-score-item"><span>⚡ 能源產出</span><span id="goEnergy">0</span></div>
+          <div class="go-score-item"><span>💰 經濟效益</span><span id="goEconomy">0</span></div>
+          <div class="go-score-item"><span>🔧 技術匹配</span><span id="goTech">0</span></div>
+          <div class="go-score-item"><span>🔬 C/N 管理</span><span id="goCN">0</span></div>
+          <div class="go-score-item"><span>🚛 物流效率</span><span id="goLogistics">0</span></div>
+          <div class="go-score-item"><span>💢 外部成本</span><span id="goExternality">0</span></div>
+          <div class="go-score-item"><span>🌀 微電網韌性</span><span id="goResilience">0</span></div>
+          <div class="go-score-item"><span>📊 系統穩定</span><span id="goStability">0</span></div>
+          <div class="go-score-item"><span>🔌 電線接電</span><span id="goPowerline">0</span></div>
+          <div class="go-score-item" id="goTimeBonusRow" style="display:none"><span>⏱ 時間獎勵</span><span id="goTimeBonus">0</span></div>
+        </div>
+
+        <div class="go-feedback-title">📝 學習診斷報告</div>
+        <div id="goFeedback" class="go-feedback"></div>
+
+        <div style="text-align:center">
+          <button id="btnRestart" class="btn-primary">🔄 重新開始</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/renderer.js"></script>
+</body>
+</html>
